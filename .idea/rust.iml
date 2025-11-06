@@ -7,11 +7,13 @@
       <sourceFolder url="file://$MODULE_DIR$/functions/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/jogo_adivinhacao/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/meu_primeiro_projeto/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ue10_desafio_metalmecanico/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/branches/target" />
       <excludeFolder url="file://$MODULE_DIR$/conversor_fahrenheit_celsius/target" />
       <excludeFolder url="file://$MODULE_DIR$/functions/target" />
       <excludeFolder url="file://$MODULE_DIR$/jogo_adivinhacao/target" />
       <excludeFolder url="file://$MODULE_DIR$/meu_primeiro_projeto/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ue10_desafio_metalmecanico/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

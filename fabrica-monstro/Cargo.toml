@@ -1,6 +1,7 @@
 [package]
-name = "meu_app"
+name = "fabrica-monstro"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clearscreen = "4.0.2"

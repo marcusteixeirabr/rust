@@ -1,60 +1,82 @@
-use std::io;
-use rand::Rng;
-
-fn main() {
-    println!("Hello, world!");
-    let mut input = String::new();
-    println!("Digite alguma coisa");
-    let _ = io::stdin().read_line(&mut input)
-        //.expect("Falha ao ler a linha")
-        ;
-    //println!("Você digitou: {}", input);
-    println!("Você digitou: {input}");
-
-    let numero_secreto = rand::rng().random_range(1..=100);
-
-    println!("O número secreto é {numero_secreto}");
-
-    let question = true;
-
-    if question {println!("teste true");}
-
-    let mut sz = String::from("texto qualquer");
-
-    // let s = &mut sz;
-
-
-    // println!("O tamanho da string é {}", s.len());
-
-    // println!("A variável s é: {}", s);
-
-    let r1 = &mut sz;
-
-   // println!("Posso usar a variável s novamente: {}", s);
-
-    // println!("Agora a variável r1: {} e s: {}", r1, s);
-
-    println!("Agora a variável r1: {}", r1);
-
-    let mut p = String::from("hello worls");
-
-    let word = first_word(&p);
-
-    // println!("A primeira palavra termina em índice: {}", p[word]);
-
-    p.clear();
-
-
-
+#[derive(Debug)] // Assim podemos verificar o Estado
+enum UsState {
+    Alabama,
+    Alaska,
+    // --snip--
 }
 
-fn first_word(s: &String) -> usize {
-    let bytes = s.as_bytes();
-    
-    for (i, &item) in bytes.iter().enumerate() {
-        if item == b' ' {
-            return i;
+impl UsState {
+    fn existed_in(&self, year: u16) -> bool {
+        match self {
+            UsState::Alabama => year >= 1819,
+            UsState::Alaska => year >= 1959,
+            // --snip---
         }
     }
-    s.len()
+}
+
+enum Coin {
+Penny,
+Nickel,
+Dime,
+Quarter(UsState),
+}
+
+fn value_in_cents(coin: &Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(_) => 25,
+    }
+}
+
+fn describe_state_quarter(coin: &Coin) -> Option<String> {
+    if let Coin::Quarter(state) = coin {
+        if state.existed_in(1900) {
+            Some(format!("{state:?} é bem antiga para a  América!"))
+        } else {
+            Some(format!("{state:?} é relativamente nova."))
+        }
+    } else {
+        None
+    }
+}
+
+fn main() {
+
+    let mut carteira = 0u8;
+    
+    let moedas = [
+    Coin::Nickel,
+    Coin::Dime,
+    Coin::Penny,
+    Coin::Quarter(UsState::Alabama),
+    Coin::Quarter(UsState::Alaska),
+    ];
+
+    for moeda in moedas.iter() {
+        carteira += value_in_cents(moeda);
+        /*
+        match moeda {
+            Coin::Quarter(state) => println!("Origem do quarter é: {state:?}"),
+            _ => println!("Origem da moeda desconhecida!"),
+        }
+        */
+        if let Coin::Quarter(state) = moeda {
+            println!("Origem do quarter é: {state:?}");
+        } else {
+            println!("Origem da moeda desconhecida!");
+        }
+
+        let antiga = describe_state_quarter(moeda);
+        
+        println!("{antiga:?}");
+    }
+
+
+
+    println!("O valor da carteira é {carteira}");
+
+    
 }

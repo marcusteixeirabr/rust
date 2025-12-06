@@ -1,3 +1,6 @@
+use std::io;
+use clearscreen::clear;
+
 enum Tamanho {
     Pequena,
     Média,
@@ -19,15 +22,17 @@ enum StatusPedido {
 }
 
 struct Pedido {
+    numero: u32,
     tamanho: Tamanho,
     sabor: Sabor,
     status: StatusPedido,
 }
 
 impl Pedido {
-    fn novo(tamanho: Tamanho, sabor: Sabor) -> Self {
+    fn novo(numero: u32, tamanho: Tamanho, sabor: Sabor) -> Self {
         println!("Seu pedido foi criado com sucesso!");
         Pedido {
+            numero,
             tamanho,
             sabor,
             status: StatusPedido::Criado,
@@ -76,18 +81,121 @@ impl Pedido {
     }
 }
 
+/// Apresenta o menu e retorna a opção escolhida
+/// # Arguments
+/// * `titulo` - Título do menu
+/// * `escolhas` - Opções disponíveis no menu
+/// # Returns
+/// * `u8` - Opção escolhida pelo usuário
+/// # Examples
+/// ```
+/// let opcao = menu("Menu Principal", &["Opção 1", "Opção 2", "Sair"]);
+/// ``` 
+fn menu(titulo: &str, escolhas: &[&str]) -> u8 {
+    let linha = "-".repeat(40);
+    loop {
+        clear().expect("Erro ao limpar a tela");
+
+        println!("{}", linha);
+        println!("{:^40}", "Rust's Pizza!");
+        println!("{}", linha);
+        println!("{:^40}", titulo);
+        println!("{}", linha);
+
+        for (i, escolha) in escolhas.iter().enumerate() {
+            println!("[{}] - {}", i + 1, escolha);
+        }
+
+        if escolhas.is_empty() {
+            return 0;
+        }
+
+        let mut entrada = String::new();
+        io::stdin().read_line(&mut entrada)
+        .expect("Erro na entrada de dados pelo teclado");
+        if let Ok(opcao) = entrada.trim().parse::<u8>() {
+            if opcao >= 1 && opcao <= escolhas.len() as u8 {
+                return opcao;
+            }
+        }
+    }
+}
 
 
 fn main() {
-    
-    let mut pedido = Pedido::novo(
-        Tamanho::Grande,
-        Sabor::Calabresa,
-    );
 
-    print!("{}", pedido.descricao());
+    let mut sequncial_pedidos: u32 = 1;
 
-    pedido.atualizar();
+    let mut pedidos: Vec<Pedido> = Vec::new();
+
+    loop {
+        let opcao = menu("Menu Principal", &[
+            "Criar um novo pedido",
+            "Consultar pedidos",
+            "Atualizar status do pedido",
+            "Cancelar pedido",
+            "Sair",
+        ]);
     
-    print!("{}", pedido.descricao());
+        match opcao {
+            1 => {
+                // Lógica para criar um novo pedido
+                let tamanho = menu("Escolha o tamanho da pizza", &[
+                    "Pequena",
+                    "Média",
+                    "Grande",
+                    "Voltar ao menu principal",
+                ]);
+                if tamanho == 4 {
+                    continue;
+                }
+                let sabor = menu("Escolha o sabor da pizza", &[
+                    "Mussarela",
+                    "Calabresa",
+                    "Marguerita",
+                    "Portuguesa",
+                    "Voltar ao menu principal",
+                ]);
+                if sabor == 5 {
+                    continue;
+                }
+                pedidos.push(Pedido::novo(
+                    sequncial_pedidos,
+                    match tamanho {
+                        1 => Tamanho::Pequena,
+                        2 => Tamanho::Média,
+                        _ => Tamanho::Grande,
+                    },
+                    match sabor {
+                        1 => Sabor::Mussarela,
+                        2 => Sabor::Calabresa,
+                        3 => Sabor::Marguerita,
+                        _ => Sabor::Portuguesa,
+                    },
+                ));
+                sequncial_pedidos += 1;
+            },
+            2 => {
+                // Lógica para consultar pedidos
+            },
+            3 => {
+                // Lógica para atualizar status do pedido
+            },
+            4 => {
+                // Lógica para cancelar pedido
+            },
+            5 => {
+                println!("Saindo do sistema. Obrigado por usar Rust's Pizza!");
+            },
+            _ => unreachable!(),
+        }
+        
+        println!("Você escolheu a opção: {}", opcao);
+
+        if !pedidos.is_empty() {
+            println!("{}", pedidos[0].descricao());
+        }
+
+    }
+
 }

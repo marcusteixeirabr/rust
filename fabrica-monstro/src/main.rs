@@ -51,7 +51,7 @@ fn escolher_opcao(questao: &str, qtd_opcoes: u8) -> u8 {
 
         match opcao.trim().parse() {
             Ok(num) => {
-                if num < 0 || num > qtd_opcoes {
+                if num > qtd_opcoes {
                     print!("Opção fora do intervalo. ");
                     continue
                 } else {

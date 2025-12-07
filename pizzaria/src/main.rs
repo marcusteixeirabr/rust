@@ -9,23 +9,46 @@
 // Dependências: clearscreen = "1.0"
 use std::io;
 use std::thread;
-use std::mem;
 use std::time::Duration;
 use clearscreen::clear;
 // Enumeração para os tamanhos de pizza
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Tamanho {
     Pequena,
     Média,
     Grande,
 }
+impl Tamanho {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Tamanho::Pequena => "Pequena",
+            Tamanho::Média => "Média",
+            Tamanho::Grande => "Grande",
+        }
+    }
+}
+
 // Enumeração para os sabores de pizza
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Sabor {
     Mussarela,
     Calabresa,
     Marguerita,
     Portuguesa,
 }
+impl Sabor {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Sabor::Mussarela => "Mussarela",
+            Sabor::Calabresa => "Calabresa",
+            Sabor::Marguerita => "Marguerita",
+            Sabor::Portuguesa => "Portuguesa",
+        }
+    }
+}
+
 // Enumeração para o status do pedido
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum StatusPedido {
     Criado,
     EmPreparo,
@@ -33,7 +56,20 @@ enum StatusPedido {
     Entregue,
     Cancelado,
 }
+impl StatusPedido {
+    fn as_str(&self) -> &'static str {
+        match self {
+        StatusPedido::Criado => "Criado",
+        StatusPedido::EmPreparo => "Em Preparo",
+        StatusPedido::Pronto => "Pronto",
+        StatusPedido::Entregue => "Entregue",
+        StatusPedido::Cancelado => "Cancelado",
+        }
+    }
+}
+
 // Estrutura que representa um pedido de pizza
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct Pedido {
     numero: u32,
     tamanho: Tamanho,
@@ -51,8 +87,9 @@ impl Pedido {
             status: StatusPedido::Criado,
          }
     }
+
     // Atualiza o status do pedido
-    fn atualizar(&mut self) {
+    fn atualizar_status(&mut self) {
         self.status = match self.status {
             StatusPedido::Criado => {
                 println!("\nSeu pedido está sendo preparado!");
@@ -71,32 +108,126 @@ impl Pedido {
                 StatusPedido::Cancelado},
         }
     }
+
     // Retorna uma descrição do pedido
-    fn descricao(&self) -> String {
-        let tamanho_str = match self.tamanho {
-            Tamanho::Pequena => "Pequena",
-            Tamanho::Média => "Média",
-            Tamanho::Grande => "Grande",
-        };
-    
-        let sabor_str = match self.sabor {
-            Sabor::Mussarela => "Mussarela",
-            Sabor::Calabresa => "Calabresa",
-            Sabor::Marguerita => "Marguerita",
-            Sabor::Portuguesa => "Portuguesa",
-        };
-    
-        let status_str = match self.status {
-            StatusPedido::Criado => "Criado",
-            StatusPedido::EmPreparo => "Em Preparo",
-            StatusPedido::Pronto => "Pronto",
-            StatusPedido::Entregue => "Entregue",
-            StatusPedido::Cancelado => "Cancelado",
-        };
-    
-        format!("Pedido nº {}: Pizza {} de {} -- Status: {}", self.numero, tamanho_str, sabor_str, status_str)
+    fn descricao(&self) -> String {          
+        format!("Pedido nº {}: Pizza {} de {} -- Status: {}",
+        self.numero,
+        self.tamanho.as_str(),
+        self.sabor.as_str(),
+        self.status.as_str())
     }
+
+
+    fn criar_pedido(id: u32) -> Option<Pedido> {
+    let tamanho = menu("Escolha o tamanho da pizza", &[
+        Tamanho::Pequena.as_str(),
+        Tamanho::Média.as_str(),
+        Tamanho::Grande.as_str(),
+        "Voltar ao menu principal",
+    ]);
+
+    if tamanho == 4 {
+        return None;
+    }
+
+    let sabor = menu("Escolha o sabor da pizza", &[
+        Sabor::Mussarela.as_str(),
+        Sabor::Calabresa.as_str(),
+        Sabor::Marguerita.as_str(),
+        Sabor::Portuguesa.as_str(),
+        "Voltar ao menu principal",
+    ]);
+
+    if sabor == 5 {
+        return None;
+    }
+
+    Some(Pedido::novo(
+        id,
+        match tamanho {
+            1 => Tamanho::Pequena,
+            2 => Tamanho::Média,
+            _ => Tamanho::Grande,
+        },
+        match sabor {
+            1 => Sabor::Mussarela,
+            2 => Sabor::Calabresa,
+            3 => Sabor::Marguerita,
+            _ => Sabor::Portuguesa,
+        },
+    ))
+    }
+
+
+    fn listar_pedidos(pedidos: &Vec<Pedido>) -> Vec<String> {
+
+        let mut lista_pedidos: Vec<String> = pedidos.iter()
+            .map(|p| p.descricao())
+            .collect();
+        lista_pedidos.push(String::from("Voltar ao Menu Principal"));
+
+        return lista_pedidos;
+    }
+
+
+    fn selecionar_pedidos(proposito: &str, pedidos: Vec<String>) -> usize {
+        
+        if pedidos.is_empty() {
+            menu("Lista de Pedidos", &[]);
+            println!("{:^70}", "Nenhum pedido encontrado");
+            println!("\nPressione Enter para voltar ao Menu Principal...");
+            let mut buffer = String::new();
+            io::stdin().read_line(&mut buffer).unwrap();
+            return 0;
+        }
+        
+        let opcoes: Vec<&str> = pedidos.iter().map(|s| s.as_str()).collect();
+        let selecao = menu(proposito, &opcoes);
+        
+        if selecao == pedidos.len() {
+            println!("\nVoltando ao Menu Principal...");
+            return 0;
+        }
+        return selecao;
+    }
+
+
+    fn atualizar_pedido(pedidos: &mut Vec<Pedido>) {
+        let selecao = Pedido::selecionar_pedidos(
+            "Atualizar Pedido",
+            Pedido::listar_pedidos(&pedidos));
+
+        let pedido_selecionado = &mut pedidos[selecao - 1];
+        
+        if pedido_selecionado.pode_atualizar() {
+            pedido_selecionado.atualizar_status();
+        } else {
+            println!("\nNão é possível atualizar um pedido cancelado ou entregue!");
+        }
+    }
+
+
+    fn cancelar_pedido(pedidos: &mut Vec<Pedido>) {
+        let selecao = Pedido::selecionar_pedidos(
+            "Cancelar Pedido",
+             Pedido::listar_pedidos(&pedidos));
+
+        let pedido_selecionado = &mut pedidos[selecao - 1];
+
+        pedido_selecionado.status = StatusPedido::Cancelado;
+        println!("\nO pedido nº {} foi cancelado com sucesso!", pedido_selecionado.numero);
+    }
+    
+
+    fn pode_atualizar(&self) -> bool {
+        !matches!(self.status, StatusPedido::Entregue | StatusPedido::Cancelado)
+    }
+
 }
+
+
+
 
 /// Apresenta o menu e retorna a opção escolhida
 /// # Arguments
@@ -108,7 +239,7 @@ impl Pedido {
 /// ```
 /// let opcao = menu("Menu Principal", &["Opção 1", "Opção 2", "Sair"]);
 /// ``` 
-fn menu(titulo: &str, escolhas: &Vec<&str>) -> u8 {
+fn menu(titulo: &str, escolhas: &[&str]) -> usize {
     let linha = "-".repeat(70);
     loop {
         clear().expect("Erro ao limpar a tela");
@@ -130,54 +261,14 @@ fn menu(titulo: &str, escolhas: &Vec<&str>) -> u8 {
         let mut entrada = String::new();
         io::stdin().read_line(&mut entrada)
         .expect("Erro na entrada de dados pelo teclado");
-        if let Ok(opcao) = entrada.trim().parse::<u8>() {
-            if opcao >= 1 && opcao <= escolhas.len() as u8 {
+        if let Ok(opcao) = entrada.trim().parse::<usize>() {
+            if opcao >= 1 && opcao <= escolhas.len() {
                 return opcao;
             }
         }
     }
 }
 
-fn consultar_pedidos(proposito: &str, pedidos: &mut Vec<Pedido>) {
-    if pedidos.is_empty() {
-        menu(proposito, &vec![]);
-        println!("{:^70}", "Nenhum pedido encontrado");
-        println!("\nPressione Enter para voltar ao Menu Principal...");
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).unwrap();
-        return;
-    }
-
-    let pedidos_str: Vec<String> = pedidos.iter()
-        .map(|p| p.descricao())
-        .collect();
-    
-    let mut pedidos_str_refs: Vec<&str> = pedidos_str.iter()
-        .map(|s| s.as_str())
-        .collect();
-
-    pedidos_str_refs.push("Voltar ao Menu Principal");
-
-    let selecao = menu(proposito, &pedidos_str_refs);
-    
-    if selecao as usize == pedidos_str_refs.len() {
-        println!("\nVoltando ao Menu Principal...");
-        return;
-    }
-    
-    let pedido_selecionado = &mut pedidos[(
-        selecao - 1) as usize];
-
-    if proposito == "Atualizar Pedido" {
-        pedido_selecionado.atualizar();
-    } else if proposito == "Cancelar Pedido" {
-        pedido_selecionado.status = StatusPedido::Cancelado;
-        println!("\nO pedido nº {} foi cancelado com sucesso!", pedido_selecionado.numero);
-    }
-
-
-
-}
 
 fn main() {
 
@@ -185,7 +276,7 @@ fn main() {
     let mut pedidos: Vec<Pedido> = Vec::new();
 
     loop {
-        let opcao = menu("Menu Principal", &vec![
+        let opcao = menu("Menu Principal", &[
             "Criar um novo pedido",
             "Atualizar status do pedido",
             "Cancelar pedido",
@@ -193,45 +284,18 @@ fn main() {
         ]);
     
         match opcao {
+            // Criar um novo pedido
             1 => {
-                // Lógica para criar um novo pedido
-                let tamanho = menu("Escolha o tamanho da pizza", &vec![
-                    "Pequena",
-                    "Média",
-                    "Grande",
-                    "Voltar ao menu principal",
-                ]);
-                if tamanho == 4 {
-                    continue;
+                if let Some(p) = Pedido::criar_pedido(sequencial_pedidos) {
+                    pedidos.push(p);
+                    sequencial_pedidos += 1;
                 }
-                let sabor = menu("Escolha o sabor da pizza", &vec![
-                    "Mussarela",
-                    "Calabresa",
-                    "Marguerita",
-                    "Portuguesa",
-                    "Voltar ao menu principal",
-                ]);
-                if sabor == 5 {
-                    continue;
-                }
-                pedidos.push(Pedido::novo(
-                    sequencial_pedidos,
-                    match tamanho {
-                        1 => Tamanho::Pequena,
-                        2 => Tamanho::Média,
-                        _ => Tamanho::Grande,
-                    },
-                    match sabor {
-                        1 => Sabor::Mussarela,
-                        2 => Sabor::Calabresa,
-                        3 => Sabor::Marguerita,
-                        _ => Sabor::Portuguesa,
-                    },
-                ));
-                sequencial_pedidos += 1;
             },
-            2 => consultar_pedidos("Atualizar Pedido", &mut pedidos),
-            3 => consultar_pedidos("Cancelar Pedido", &mut pedidos),
+            // Atualizar status do pedido
+            2 => Pedido::atualizar_pedido(&mut pedidos),
+            // Cancelar pedido"Cancelar Pedido", &mut pedidos),
+            3 => Pedido::cancelar_pedido(&mut pedidos),
+            // Sair
             4 => {
                 println!("\nSaindo do sistema. Obrigado por usar Rust's Pizza!\n");
                 break;
